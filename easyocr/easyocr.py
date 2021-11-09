@@ -264,6 +264,18 @@ class Reader(object):
         self.lang_char = set(self.lang_char).union(set(symbol))
         self.lang_char = ''.join(self.lang_char)
 
+    def detect_text_bboxs(self, img, text_threshold = 0.7, low_text = 0.4,\
+               link_threshold = 0.4,canvas_size = 2560, mag_ratio = 1.,
+                reformat=True, optimal_num_chars=None):
+
+        if reformat:
+            img, img_cv_grey = reformat_input(img)
+
+        text_box_list = get_textbox(self.detector, img, canvas_size, mag_ratio,
+                                    text_threshold, link_threshold, low_text,
+                                    False, self.device, optimal_num_chars, 'text')
+        return text_box_list[0]
+
     def detect(self, img, min_size = 20, text_threshold = 0.7, low_text = 0.4,\
                link_threshold = 0.4,canvas_size = 2560, mag_ratio = 1.,\
                slope_ths = 0.1, ycenter_ths = 0.5, height_ths = 0.5,\

@@ -17,7 +17,7 @@ def warpCoord(Minv, pt):
 """ end of auxilary functions """
 
 
-def getDetBoxes_core(textmap, linkmap, text_threshold, link_threshold, low_text, estimate_num_chars=False):
+def getDetBoxes_core(textmap, linkmap, text_threshold, link_threshold, low_text, estimate_num_chars=False, labeling_mode='all'):
     # prepare data
     linkmap = linkmap.copy()
     textmap = textmap.copy()
@@ -27,7 +27,11 @@ def getDetBoxes_core(textmap, linkmap, text_threshold, link_threshold, low_text,
     ret, text_score = cv2.threshold(textmap, low_text, 1, 0)
     ret, link_score = cv2.threshold(linkmap, link_threshold, 1, 0)
 
-    text_score_comb = np.clip(text_score + link_score, 0, 1)
+    if labeling_mode == 'text':
+        text_score_comb = np.clip(text_score, 0, 1)
+    else:
+        text_score_comb = np.clip(text_score + link_score, 0, 1)
+
     nLabels, labels, stats, centroids = cv2.connectedComponentsWithStats(text_score_comb.astype(np.uint8), connectivity=4)
 
     det = []
@@ -230,10 +234,10 @@ def getPoly_core(boxes, labels, mapper, linkmap):
 
     return polys
 
-def getDetBoxes(textmap, linkmap, text_threshold, link_threshold, low_text, poly=False, estimate_num_chars=False):
+def getDetBoxes(textmap, linkmap, text_threshold, link_threshold, low_text, poly=False, estimate_num_chars=False, labeling_mode='all'):
     if poly and estimate_num_chars:
         raise Exception("Estimating the number of characters not currently supported with poly.")
-    boxes, labels, mapper = getDetBoxes_core(textmap, linkmap, text_threshold, link_threshold, low_text, estimate_num_chars)
+    boxes, labels, mapper = getDetBoxes_core(textmap, linkmap, text_threshold, link_threshold, low_text, estimate_num_chars, labeling_mode)
 
     if poly:
         polys = getPoly_core(boxes, labels, mapper, linkmap)
